@@ -1,6 +1,7 @@
 //! Import keys to CNG
 use pkcs1::{RsaPrivateKey, RsaPublicKey};
 use rustls::Error;
+use zeroize::Zeroizing;
 use windows::{
     core::Owned,
     Win32::Security::Cryptography::{
@@ -42,7 +43,7 @@ pub(crate) fn import_rsa_private_key(
         + prime1.len()
         + prime2.len();
 
-    let mut blob = Vec::with_capacity(size);
+    let mut blob: Zeroizing<Vec<u8>> = Zeroizing::new(Vec::with_capacity(size));
     unsafe {
         let p: *const BCRYPT_RSAKEY_BLOB = &header;
         let p: *const u8 = p.cast::<u8>();
@@ -87,7 +88,7 @@ pub(crate) fn import_rsa_public_key(
     };
 
     let size = core::mem::size_of::<BCRYPT_RSAKEY_BLOB>() + modulus.len() + public_exponent.len();
-    let mut blob = Vec::with_capacity(size);
+    let mut blob: Zeroizing<Vec<u8>> = Zeroizing::new(Vec::with_capacity(size));
     unsafe {
         let p: *const BCRYPT_RSAKEY_BLOB = &header;
         let p: *const u8 = p.cast::<u8>();
@@ -141,7 +142,7 @@ fn import_ec_private_key(
         cbKey: key_len as u32,
     };
     let header_size = core::mem::size_of::<BCRYPT_ECCKEY_BLOB>();
-    let mut blob = Vec::with_capacity(header_size + key_len * 3);
+    let mut blob: Zeroizing<Vec<u8>> = Zeroizing::new(Vec::with_capacity(header_size + key_len * 3));
     unsafe {
         let p: *const BCRYPT_ECCKEY_BLOB = &header;
         let p: *const u8 = p.cast::<u8>();
@@ -198,7 +199,7 @@ fn import_ec_public_key(
         cbKey: key_len as u32,
     };
     let header_size = core::mem::size_of::<BCRYPT_ECCKEY_BLOB>();
-    let mut blob = Vec::with_capacity(header_size + key_len * 2);
+    let mut blob: Zeroizing<Vec<u8>> = Zeroizing::new(Vec::with_capacity(header_size + key_len * 2));
     unsafe {
         let p: *const BCRYPT_ECCKEY_BLOB = &header;
         let p: *const u8 = p.cast::<u8>();
